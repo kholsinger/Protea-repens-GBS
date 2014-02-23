@@ -25,7 +25,7 @@ count.genos <- function(x) {
   genos
 }
 
-markers <- read.csv("loci_90_t.csv", header=TRUE, na.strings=".")
+markers <- read.csv("loci_90all_t.csv", header=TRUE, na.strings=".")
 n.markers <- ncol(markers)
 
 markers$pop <- as.factor(strip(rownames(markers)))
@@ -34,6 +34,7 @@ locus <- colnames(markers)
 
 f.vec <- numeric(0)
 pvals <- numeric(0)
+ct <- 0
 for (pop.n in unique(markers$pop)) {
   x <- subset(markers, pop==pop.n)
   if (nrow(x) > 1) {
@@ -41,7 +42,7 @@ for (pop.n in unique(markers$pop)) {
     for (l in 1:n.markers) {
       f <- get.f(x[,l])
       if (!is.na(f)) {
-        chisq <- HWChisq(count.genos(x[,l]), cc=0)
+        chisq <- suppressWarnings(HWChisq(count.genos(x[,l]), cc=0))
         if (check) {
           if (abs(length(x[,l])*(f^2) - chisq$chisq) > 1.0e-6) {
             cat("f:           ", f, "\n",
@@ -54,6 +55,7 @@ for (pop.n in unique(markers$pop)) {
         f.vec <- c(f.vec, f)
         pvals <- c(pvals, chisq$pval)
         cat("  ", locus[l], " - ", f, "\n")
+        ct <- ct + 1
       }
     }
   }
@@ -62,3 +64,5 @@ for (pop.n in unique(markers$pop)) {
 hist(pvals)
 dev.new()
 hist(f.vec)
+
+cat("Total no. of p-values calculated: ", ct, "\n", sep="")

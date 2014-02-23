@@ -25,6 +25,10 @@ Notes/*
 #########################
 *.Rsave
 
+# JAGS files (produced when debugging)
+######################################
+jags*
+
 # LaTeX files
 ######################
 *.aux

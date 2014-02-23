@@ -28,7 +28,9 @@ jags.data <- c("n",
                "N",
                "n.pops",
                "n.loci")
-jags.params <- c("theta")
+jags.params <- c("f",
+                 "theta.pop",
+                 "theta.locus")
 
 fit <- jags2(data=jags.data,
             inits=NULL,
