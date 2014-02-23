@@ -1,0 +1,45 @@
+# Miscellaneous files
+######################
+*~
+*.docx
+*.xlsx
+*.zip
+*.pptx
+*.jpg
+*.pdf
+*.zip
+
+# Notes directory
+#################
+Notes/*
+
+# Hidden R files
+######################
+.Rapp.history
+.Rhistory
+.Rdata
+.Rproj*
+*Rproj
+
+# Don't synch .Rsave files
+#########################
+*.Rsave
+
+# LaTeX files
+######################
+*.aux
+*.log
+*.synctex.gz
+*.bbl
+*.blg
+
+# OS generated files
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db

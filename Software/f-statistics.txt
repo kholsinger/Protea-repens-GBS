@@ -1,0 +1,38 @@
+model {
+   ## genotype frequencies
+   ##
+   for (i in 1:n.pops) {
+     for (j in 1:n.loci) {
+       x[i,j,1] <- p[i,j]*p[i,j] + f[i,j]*p[i,j]*(1-p[i,j])
+       x[i,j,2] <- 2*(1-f[i,j])*p[i,j]*(1 - p[i,j])
+       x[i,j,3] <- (1-p[i,j])*(1-p[i,j]) + f[i,j]*p[i,j]*(1-p[i,j])
+     }
+   }
+
+   ## likelihood
+   ##
+   for (i in 1:n.pops) {
+     for (j in 1:n.loci) {
+       n[i,j,1:3] ~ dmulti(x[i,j,], N[i,j])
+     }
+   }
+
+   ## priors
+   ##
+   for (i in 1:n.pops) {
+     for (j in 1:n.loci) {
+       p[i,j] ~ dbeta(alpha[j], beta[j])
+       f[i,j] <- w[i,j]*(1 - f.min[i,j]) + f.min[i,j]
+       f.min[i,j] <- max(-p[i,j]/(1-p[i,j]), -(1-p[i,j])/p[i,j])
+       w[i,j] ~ dunif(0, 1)
+     }
+   }
+   for (j in 1:n.loci) {
+     alpha[j] <- ((1 - theta)/theta)*pi[j]
+     beta[j]  <- ((1 - theta)/theta)*(1-pi[j])
+     pi[j]     ~ dunif(0, 1)
+   }
+   theta ~ dunif(0, 1)
+}
+
+
