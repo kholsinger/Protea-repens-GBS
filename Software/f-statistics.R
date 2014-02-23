@@ -17,9 +17,9 @@ if (DEBUG) {
   }
 }
 
-n.sample <- 25000
-n.burnin <- 5000
-n.thin   <- 5
+n.sample <- 250000
+n.burnin <- 50000
+n.thin   <- 50
 n.chains <- 5
 
 n.iter   <- n.sample + n.burnin
@@ -30,7 +30,11 @@ jags.data <- c("n",
                "n.loci")
 jags.params <- c("f",
                  "theta.pop",
-                 "theta.locus")
+                 "theta.p",
+                 "pi.p",
+                 "theta.locus",
+                 "theta.l",
+                 "pi.l")
 
 fit <- jags2(data=jags.data,
             inits=NULL,
@@ -41,4 +45,6 @@ fit <- jags2(data=jags.data,
             n.burnin=n.burnin,
             n.thin=n.thin,
             clearWD=DEBUG)
-print(fit)
+old.width <- options(width=180)
+print(fit, digits=3)
+options(width=old.width$width)

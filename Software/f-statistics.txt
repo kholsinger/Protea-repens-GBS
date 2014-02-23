@@ -30,13 +30,21 @@ model {
    ## population effect on theta[i,j]
    ##
    for (i in 1:n.pops) {
-     theta.pop[i] ~ dunif(0, 1)
+     theta.pop[i] ~ dbeta(alpha.pop, beta.pop)
    }
+   alpha.pop <- ((1-theta.p)/theta.p)*pi.p
+   beta.pop  <- ((1-theta.p)/theta.p)*(1-pi.p)
+   theta.p    ~ dunif(0, 1)
+   pi.p       ~ dunif(0, 1)
    ## locus effect on theta[i,j]
    ##
    for (j in 1:n.loci) {
-     theta.locus[j] ~ dunif(0, 1)
+     theta.locus[j] ~ dbeta(alpha.locus, beta.locus)
    }
+   alpha.locus <- ((1-theta.l)/theta.l)*pi.l
+   beta.locus  <- ((1-theta.l)/theta.l)*(1-pi.l)
+   theta.l      ~ dunif(0, 1)
+   pi.l         ~ dunif(0, 1)
    ## parameters for allele frequency distribution
    ##
    for (i in 1:n.pops) {
