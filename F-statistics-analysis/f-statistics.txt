@@ -34,8 +34,8 @@ model {
    }
    alpha.pop <- ((1-theta.p)/theta.p)*pi.p
    beta.pop  <- ((1-theta.p)/theta.p)*(1-pi.p)
-   theta.p    ~ dunif(0, 1)
-   pi.p       ~ dunif(0, 1)
+   theta.p    ~ dbeta(nu, omega)
+   pi.p       ~ dbeta(nu, omega)
    ## locus effect on theta[i,j]
    ##
    for (j in 1:n.loci) {
@@ -43,8 +43,8 @@ model {
    }
    alpha.locus <- ((1-theta.l)/theta.l)*pi.l
    beta.locus  <- ((1-theta.l)/theta.l)*(1-pi.l)
-   theta.l      ~ dunif(0, 1)
-   pi.l         ~ dunif(0, 1)
+   theta.l      ~ dbeta(nu, omega)
+   pi.l         ~ dbeta(nu, omega)
    ## parameters for allele frequency distribution
    ##
    for (i in 1:n.pops) {
