@@ -35,7 +35,7 @@ count.genos <- function(x) {
   genos
 }
 
-read.data <- function(filename) {
+read.marker.data <- function(filename) {
   markers <- read.csv(filename, header=TRUE, na.strings=".")
 
   markers$pop <- as.factor(strip(rownames(markers)))
@@ -63,25 +63,109 @@ read.data <- function(filename) {
        N=N)
 }
 
+get.fst <- function(p) {
+  fst <- var(p, na.rm=TRUE)/(mean(p, na.rm=TRUE)*(1-mean(p, na.rm=TRUE)))
+  if (is.nan(fst)) {
+    fst <- NA
+  }
+  fst
+}
+
+get.beta.pars <- function(n, N, tightness) {
+  n.pops <- nrow(N)
+  n.loci <- ncol(N)
+  p <- matrix(nrow=n.pops, ncol=n.loci)
+  for (i in 1:n.pops) {
+    for (j in 1:n.loci) {
+      p[i,j] <- (2*n[i,j,1] + n[i,j,2])/(2*N[i,j])
+    }
+  }
+  ## population-specific effects
+  ##
+  fst.ij <- matrix(nrow=n.pops, ncol=n.pops)
+  for (i in 1:n.pops) {
+    for (j in 1:n.pops) {
+      fst.l <- numeric(n.loci)
+      if (i == j) {
+        fst.ij[i,j] <- NA
+      } else {
+        for (l in 1:n.loci) {
+          fst.l[l] <- get.fst(c(p[i,l], p[j,l]))
+        }
+        fst.ij[i,j] <- (n.pops/(n.pops-1))*mean(fst.l)
+      }
+    }
+  }
+  sigma.2 <- var(as.vector(fst.ij), na.rm=TRUE)
+  mu <- mean(as.vector(fst.ij), na.rm=TRUE)
+  theta.pop <- sigma.2/(mu*(1-mu))
+  alpha.pop <- ((1-theta.pop)/theta.pop)*mu
+  beta.pop  <- ((1-theta.pop)/theta.pop)*(1-mu)
+  mu.pop <- alpha.pop/(alpha.pop + beta.pop)
+  nu.p.pi <- ((1-tightness)/tightness)*mu.pop
+  omega.p.pi <- ((1-tightness)/tightness)*(1-mu.pop)
+  ## locus-specific effects
+  ##
+  fst <- numeric(n.loci)
+  for (i in 1:n.loci) {
+    fst[i] <- get.fst(p[,i])
+  }
+  sigma.2 <- var(fst, na.rm=TRUE)
+  mu <- mean(fst, na.rm=TRUE)
+  theta.locus <- sigma.2/(mu*(1-mu))
+  alpha.locus <- ((1-theta.locus)/theta.locus)*mu
+  beta.locus  <- ((1-theta.locus)/theta.locus)*(1-mu)
+  mu.locus <- alpha.locus/(alpha.locus + beta.locus)
+  nu.l.pi <- ((1-tightness)/tightness)*mu.locus
+  omega.l.pi <- ((1-tightness)/tightness)*(1-mu.locus)
+  list(nu.p.pi=nu.p.pi,
+       omega.p.pi=omega.p.pi,
+       nu.l.pi=nu.l.pi,
+       omega.l.pi=omega.l.pi,
+       max.fij=max(fst.ij, na.rm=TRUE),
+       min.fij=min(fst.ij, na.rm=TRUE),
+       max.fst=max(fst, na.rm=TRUE),
+       min.fst=min(fst, na.rm=TRUE))
+}
+
 ## n - an n.pops x n.loci x 3 array of genotype counts
 ## N - an n.pops x n.loci array of sample sizes
 ## n.pops - number of populations in the sample
 ## n.loci - number of loci scored
-## nu - first parameter of beta for prior on theta.l and theta.p
-## omega - second parameter of beta for prior on theta.l and theta.p
+## nu - first parameter of beta specifying "tightness" of prior for
+##      mean locus- and population-specific effect
+## omega - second parameter of beta specifying "tightness" of prior for
+##      mean locus- and population-specific effect
+## digits - number of digits to display in print outs
 ##
 analyze.data <- function(n, N, n.pops, n.loci,
-                         nu=1,
-                         omega=3,
                          n.sample=250000,
                          n.burnin=50000,
                          n.thin=50,
-                         n.chains=5)
+                         n.chains=5,
+                         nu=1,
+                         omega=9,
+                         digits=3)
 {
-  n <- n
-  N <- N
-  n.pops <- n.pops
-  n.loci <- n.loci
+  beta.pars <- get.beta.pars(n, N, nu/(nu+omega))
+  nu.l.t <- nu
+  omega.l.t <- omega
+  nu.l.pi <- beta.pars$nu.l.pi
+  omega.l.pi <- beta.pars$omega.l.pi
+  nu.p.t <- nu
+  omega.p.t <- omega
+  nu.p.pi <- beta.pars$nu.p.pi
+  omega.p.pi <- beta.pars$omega.p.pi
+  cat("pi.l: ", round(nu.l.pi/(nu.l.pi+omega.l.pi), digits),
+      " (", round(nu.l.pi, digits), ",", round(omega.l.pi, digits),")", "\n",
+      "  locus Fst: (", round(beta.pars$min.fst, digits), ",",
+      round(beta.pars$max.fst, digits), ")\n",
+      "pi.p: ", round(nu.p.pi/(nu.p.pi+omega.p.pi), digits),
+      " (", round(nu.p.pi, digits), ",", round(omega.p.pi, digits),")", "\n",
+      "  pop Fst:   (", round(beta.pars$min.fij, digits), ",",
+      round(beta.pars$max.fij, digits), ")\n",
+      sep="")
+
   n.sample <- n.sample
   n.thin <- n.thin
   n.chains <- n.chains
@@ -91,8 +175,14 @@ analyze.data <- function(n, N, n.pops, n.loci,
                  "N",
                  "n.pops",
                  "n.loci",
-                 "nu",
-                 "omega")
+                 "nu.l.t",
+                 "omega.l.t",
+                 "nu.l.pi",
+                 "omega.l.pi",
+                 "nu.p.t",
+                 "omega.p.t",
+                 "nu.p.pi",
+                 "omega.p.pi")
   jags.params <- c("f",
                    "theta.pop",
                    "theta.p",
