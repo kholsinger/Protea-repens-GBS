@@ -47,3 +47,10 @@ jags*
 Icon?
 ehthumbs.db
 Thumbs.db
+
+# Preliminary data files (not for sharing)
+##########################################
+loci_90_t.csv
+loci_95_t.csv
+loci_all.csv
+new data files.txt

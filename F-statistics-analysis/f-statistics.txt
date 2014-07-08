@@ -32,8 +32,8 @@ model {
    for (i in 1:n.pops) {
      theta.pop[i] ~ dbeta(alpha.pop, beta.pop)
    }
-   alpha.pop <- min(1, max(((1-theta.p)/theta.p)*pi.p, 1.0e4))
-   beta.pop  <- min(1, max(((1-theta.p)/theta.p)*(1-pi.p), 1.0e4))
+   alpha.pop <- max(1, min(((1-theta.p)/theta.p)*pi.p, 1.0e4))
+   beta.pop  <- max(1, min(((1-theta.p)/theta.p)*(1-pi.p), 1.0e4))
    theta.p    ~ dbeta(nu.p.t, omega.p.t)
    pi.p       ~ dbeta(nu.p.pi, omega.p.pi)
    ## locus effect on theta[i,j]
@@ -41,8 +41,8 @@ model {
    for (j in 1:n.loci) {
      theta.locus[j] ~ dbeta(alpha.locus, beta.locus)
    }
-   alpha.locus <- min(1, max(((1-theta.l)/theta.l)*pi.l, 1.0e4))
-   beta.locus  <- min(1, max(((1-theta.l)/theta.l)*(1-pi.l), 1.0e4))
+   alpha.locus <- max(1, min(((1-theta.l)/theta.l)*pi.l, 1.0e4))
+   beta.locus  <- max(1, min(((1-theta.l)/theta.l)*(1-pi.l), 1.0e4))
    theta.l      ~ dbeta(nu.l.t, omega.l.t)
    pi.l         ~ dbeta(nu.l.pi, omega.l.pi)
    ## parameters for allele frequency distribution
@@ -50,8 +50,8 @@ model {
    for (i in 1:n.pops) {
      for (j in 1:n.loci) {
        theta[i,j] <- 1 - (1 - theta.pop[i])*(1 - theta.locus[j])
-       alpha[i,j] <- min(1, max(((1-theta[i,j])/theta[i,j])*pi[j], 1.0e4))
-       beta[i,j]  <- min(1, max(((1-theta[i,j])/theta[i,j])*(1-pi[j]), 1.0e4))
+       alpha[i,j] <- max(1, min(((1-theta[i,j])/theta[i,j])*pi[j], 1.0e4))
+       beta[i,j]  <- max(1, min(((1-theta[i,j])/theta[i,j])*(1-pi[j]), 1.0e4))
      }
    }
    for (j in 1:n.loci) {

@@ -38,10 +38,10 @@ count.genos <- function(x) {
 read.marker.data <- function(filename) {
   markers <- read.csv(filename, header=TRUE, na.strings=".")
 
-  markers$pop <- as.factor(strip(rownames(markers)))
+  markers$pop <- as.factor(strip(as.character(markers$indiv)))
   markers <- subset(markers, pop!="EMPTY")
   n.pops <-length(unique(markers$pop))
-  n.loci <- ncol(markers)-1
+  n.loci <- ncol(markers)-2
 
   locus <- colnames(markers)
 
@@ -53,7 +53,8 @@ read.marker.data <- function(filename) {
     ## each locus is in a different column
     x <- subset(markers, pop==pop.n)
     for (j in 1:n.loci) {
-      n[i, j, ] <- count.genos(x[,j])
+      ## +1 because indiv is in column 1
+      n[i, j, ] <- count.genos(x[,j+1])
       N[i,j] <- sum(n[i,j,])
     }
   }
@@ -83,16 +84,16 @@ get.beta.pars <- function(n, N, tightness) {
   ## population-specific effects
   ##
   fst.ij <- matrix(nrow=n.pops, ncol=n.pops)
+  fst.l <- numeric(n.loci)
   for (i in 1:n.pops) {
     for (j in 1:n.pops) {
-      fst.l <- numeric(n.loci)
       if (i == j) {
         fst.ij[i,j] <- NA
       } else {
         for (l in 1:n.loci) {
           fst.l[l] <- get.fst(c(p[i,l], p[j,l]))
         }
-        fst.ij[i,j] <- (n.pops/(n.pops-1))*mean(fst.l)
+        fst.ij[i,j] <- (n.pops/(n.pops-1))*mean(fst.l, na.rm=TRUE)
       }
     }
   }
@@ -141,7 +142,7 @@ get.beta.pars <- function(n, N, tightness) {
 analyze.data <- function(n, N, n.pops, n.loci,
                          n.sample=250000,
                          n.burnin=50000,
-                         n.thin=50,
+                         n.thin=250,
                          n.chains=5,
                          nu=1,
                          omega=9,
