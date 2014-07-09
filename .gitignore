@@ -54,3 +54,7 @@ loci_90_t.csv
 loci_95_t.csv
 loci_all.csv
 new data files.txt
+
+# Figures
+#########
+*.ps
