@@ -1,3 +1,9 @@
+## to use
+##
+## markers <- read.marker.data("filename.csv")
+## result <- analyze.data(markers)
+## print.summary(result)
+
 require(R2jags)
 
 generate.data <- function(theta=0.2,
@@ -129,17 +135,18 @@ get.beta.pars <- function(n, N, tightness) {
        min.fst=min(fst, na.rm=TRUE))
 }
 
-## n - an n.pops x n.loci x 3 array of genotype counts
-## N - an n.pops x n.loci array of sample sizes
-## n.pops - number of populations in the sample
-## n.loci - number of loci scored
+## markers - a list containing n, N, n.pops, and n.loc
+##   n - an n.pops x n.loci x 3 array of genotype counts
+##   N - an n.pops x n.loci array of sample sizes
+##   n.pops - number of populations in the sample
+##   n.loci - number of loci scored
 ## nu - first parameter of beta specifying "tightness" of prior for
 ##      mean locus- and population-specific effect
 ## omega - second parameter of beta specifying "tightness" of prior for
 ##      mean locus- and population-specific effect
 ## digits - number of digits to display in print outs
 ##
-analyze.data <- function(n, N, n.pops, n.loci,
+analyze.data <- function(markers,
                          n.sample=250000,
                          n.burnin=50000,
                          n.thin=250,
@@ -148,6 +155,10 @@ analyze.data <- function(n, N, n.pops, n.loci,
                          omega=9,
                          digits=3)
 {
+  n <- markers$n
+  N <- markers$N
+  n.pops <- markers$n.pops
+  n.loci <- markers$n.loci
   beta.pars <- get.beta.pars(n, N, nu/(nu+omega))
   nu.l.t <- nu
   omega.l.t <- omega

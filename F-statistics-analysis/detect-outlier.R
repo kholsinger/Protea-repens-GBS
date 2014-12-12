@@ -23,7 +23,7 @@ get.kld <- function(alpha.0, beta.0, alpha.1, beta.1) {
     (beta.0 - beta.1)*(digamma(beta.0) - digamma(alpha.0+beta.0))
 }
 
-markers <- read.csv("loci_90all_t.csv", header=TRUE)
+markers <- read.csv("loci_20.csv", header=TRUE)
 markers$pop <- as.factor(strip(rownames(markers)))
 markers <- subset(markers, pop!="EMPTY")
 pops <- unique(markers$pop)

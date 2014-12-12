@@ -129,7 +129,7 @@ for.plot$pop <- factor(for.plot$pop,
                                 "CDB",
                                 "VAN"))
 means <- ddply(for.plot, c("pop"), summarize, X=mean(x), Y=mean(y))
-means$pop<- factor(for.plot$pop,
+means$pop<- factor(means$pop,
                    levels=c("ALC",
                             "LOE",
                             "KAR",

@@ -58,3 +58,9 @@ new data files.txt
 # Figures
 #########
 *.ps
+
+# treemix .gz and .llik files
+###################
+treemix/*gz
+treemix/*llik
+
