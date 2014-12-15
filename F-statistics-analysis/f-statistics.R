@@ -4,8 +4,6 @@
 ## result <- analyze.data(markers)
 ## print.summary(result)
 
-require(R2jags)
-
 generate.data <- function(theta=0.2,
                           n.pops,
                           n.loci,
@@ -155,6 +153,8 @@ analyze.data <- function(markers,
                          omega=9,
                          digits=3)
 {
+  require(R2jags)
+
   n <- markers$n
   N <- markers$N
   n.pops <- markers$n.pops
@@ -213,6 +213,128 @@ analyze.data <- function(markers,
               n.thin=n.thin)
   fit
 }
+
+stan.inits.one <- function(chain_id, n.pops, n.loci) {
+  p <- matrix(nrow=n.pops, ncol=n.loci)
+  w <- matrix(nrow=n.pops, ncol=n.loci)
+  f <- matrix(nrow=n.pops, ncol=n.loci)
+  for (i in 1:n.pops) {
+    p[i,] <- runif(n.loci)
+    for (j in 1:n.loci) {
+      ## sets inital f[i,j] = 0 for all i & j
+      ##
+      f.min <- max(-p[i,j]/(1-p[i,j]), -(1-p[i,j])/p[i,j])
+      w[i,j] <- -f.min/(1 - f.min)
+    }
+    f[i,] <- runif(n.loci)
+  }
+  pi <- runif(n.loci)
+  thetaLocus <- runif(n.loci)
+  thetaPop <- runif(n.pops)
+  piL <- var(thetaLocus)/(mean(thetaLocus)*(1-mean(thetaLocus)))
+  thetaL <- 0.1
+  piP <- var(thetaPop)/(mean(thetaPop)*(1-mean(thetaPop)))
+  thetaP <- 0.1
+  list(p=p, w=w, f=f, pi=pi, thetaLocus=thetaLocus, thetaPop=thetaPop,
+       thetaP=thetaP, piP=piP, thetaL=thetaL, piL=piL)
+}
+
+stan.inits <-function(n.pops, n.loci, n.chains) {
+  inits.list <- lapply(1:n.chains, stan.inits.one, n.pops, n.loci)
+  inits.list
+}
+
+## markers - a list containing n, N, n.pops, and n.loc
+##   n - an n.pops x n.loci x 3 array of genotype counts
+##   N - an n.pops x n.loci array of sample sizes
+##   n.pops - number of populations in the sample
+##   n.loci - number of loci scored
+## nu - first parameter of beta specifying "tightness" of prior for
+##      mean locus- and population-specific effect
+## omega - second parameter of beta specifying "tightness" of prior for
+##      mean locus- and population-specific effect
+## digits - number of digits to display in print outs
+##
+analyze.data.stan <- function(markers,
+                              n.sample=5000,
+                              n.burnin=1000,
+                              n.thin=1,
+                              n.chains=5,
+                              nu=1,
+                              omega=9,
+                              digits=3)
+{
+  require(rstan)
+  require(parallel)
+
+  n <- markers$n
+  N <- markers$N
+  nPops <- markers$n.pops
+  nLoci <- markers$n.loci
+  beta.pars <- get.beta.pars(n, N, nu/(nu+omega))
+  nuLT <- nu*10
+  omegaLT <- omega*10
+  nuLPi <- beta.pars$nu.l.pi
+  omegaLPi <- beta.pars$omega.l.pi
+  nuPT <- nu
+  omegaPT <- omega
+  nuPPi <- beta.pars$nu.p.pi
+  omegaPPi <- beta.pars$omega.p.pi
+  cat("piL: ", round(nuLPi/(nuLPi+omegaLPi), digits),
+      " (", round(nuLPi, digits), ",", round(omegaLPi, digits),")", "\n",
+      "  locus Fst: (", round(beta.pars$min.fst, digits), ",",
+      round(beta.pars$max.fst, digits), ")\n",
+      "piP: ", round(nuPPi/(nuPPi+omegaPPi), digits),
+      " (", round(nuPPi, digits), ",", round(omegaPPi, digits),")", "\n",
+      "  pop Fst:   (", round(beta.pars$min.fij, digits), ",",
+      round(beta.pars$max.fij, digits), ")\n",
+      sep="")
+
+  n.sample <- n.sample
+  n.thin <- n.thin
+  n.chains <- n.chains
+  n.iter   <- n.sample + n.burnin
+
+  data <- list(n=n,
+               N=N,
+               nPops=nPops,
+               nLoci=nLoci,
+               nuLT=nuLT,
+               omegaLT=omegaLT,
+               nuLPi=nuLPi,
+               omegaLPi=omegaLPi,
+               nuPT=nuPT,
+               omegaPT=omegaPT,
+               nuPPi=nuPPi,
+               omegaPPi=omegaPPi)
+  params <- c("f",
+              "thetaPop",
+              "thetaP",
+              "piP",
+              "thetaLocus",
+              "thetaL",
+              "piL")
+
+  foo <- stan(data=data,
+              pars=params,
+              file="f-statistics.stan",
+              chains=0)
+
+  sflist <- mclapply(1:n.chains, mc.cores=4,
+                     function(i) stan(fit=foo,
+                                      data=data,
+                                      pars=params,
+                                      init=stan.inits(nPops, nLoci, 1),
+                                      iter=n.iter,
+                                      warmup=n.burnin,
+                                      thin=n.thin,
+                                      chains=1,
+                                      chain_id=i,
+                                      refresh=-1))
+  fit <- sflist2stanfit(sflist)
+  fit
+}
+
 
 print.summary <- function(fit) {
   old.width <- options(width=180)

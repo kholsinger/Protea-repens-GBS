@@ -1,5 +1,3 @@
-load("thetas.Rsave")
-
 strip <- function(x) {
   y <- vector(mode="character", length=length(x))
   for (i in 1:length(x)) {
@@ -24,11 +22,12 @@ get.kld <- function(alpha.0, beta.0, alpha.1, beta.1) {
 }
 
 markers <- read.csv("loci_20.csv", header=TRUE)
-markers$pop <- as.factor(strip(rownames(markers)))
+markers$pop <- as.factor(strip(as.character(markers$indiv)))
 markers <- subset(markers, pop!="EMPTY")
 pops <- unique(markers$pop)
 n.pops <-length(unique(markers$pop))
 
+sink("outliers-JAGS.txt")
 lo <- quantile(pi.l, probs=0.025)
 hi <- quantile(pi.l, probs=0.975)
 cat("Locus outliers:  ", mean(pi.l), " (", lo, ",", hi, ")...\n", sep="")
@@ -62,5 +61,4 @@ for (i in 1:n.pops) {
         sep="")
   }
 }
-
-
+sink()
