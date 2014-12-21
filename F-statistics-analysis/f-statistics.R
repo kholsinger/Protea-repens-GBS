@@ -265,7 +265,6 @@ analyze.data.stan <- function(markers,
                               digits=3)
 {
   require(rstan)
-  require(parallel)
 
   n <- markers$n
   N <- markers$N
@@ -315,23 +314,15 @@ analyze.data.stan <- function(markers,
               "thetaL",
               "piL")
 
-  foo <- stan(data=data,
+  fit <- stan(data=data,
               pars=params,
               file="f-statistics.stan",
-              chains=0)
+              init=stan.inits(nPops, nLoci, 1),
+              iter=n.iter,
+              warmup=n.burnin,
+              thin=n.thin,
+              chains=n.chains)
 
-  sflist <- mclapply(1:n.chains, mc.cores=4,
-                     function(i) stan(fit=foo,
-                                      data=data,
-                                      pars=params,
-                                      init=stan.inits(nPops, nLoci, 1),
-                                      iter=n.iter,
-                                      warmup=n.burnin,
-                                      thin=n.thin,
-                                      chains=1,
-                                      chain_id=i,
-                                      refresh=-1))
-  fit <- sflist2stanfit(sflist)
   fit
 }
 

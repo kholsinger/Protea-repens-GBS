@@ -1,3 +1,5 @@
+require(adegenet)
+
 substitute <- function(x) {
   y <- character(length(x))
   y[x==0] <- "11"
@@ -21,12 +23,12 @@ hs <- function(x, truenames = TRUE) {
     if (is.genind(x)) {
         x <- genind2genpop(x, quiet = TRUE)
     }
-    if (!is.genpop(x)) 
+    if (!is.genpop(x))
         stop("x is not a valid genpop object")
-    if (x@type == "PA") 
+    if (x@type == "PA")
         stop("not implemented for presence/absence markers")
     x.byloc <- seploc(x, truenames = truenames)
-    lX <- lapply(x.byloc, function(e) makefreq(e, quiet = TRUE, 
+    lX <- lapply(x.byloc, function(e) makefreq(e, quiet = TRUE,
         truenames = truenames)$tab)
     ## this is the only change - adding na.rm=TRUE to sum()
     ##
