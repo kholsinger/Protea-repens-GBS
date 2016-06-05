@@ -9,9 +9,15 @@
 *.pdf
 *.zip
 
-# Notes directory
-#################
+# Notes and Drafts directories
+##############################
+Drafts/*
 Notes/*
+
+# Analyses explored but not incorporated into published paper
+#############################################################
+bayenv/*
+bayesass/*
 
 # Hidden R files
 ######################
@@ -64,3 +70,4 @@ new data files.txt
 treemix/*gz
 treemix/*llik
 
+.Rproj.user

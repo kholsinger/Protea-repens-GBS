@@ -1,8 +1,10 @@
 ## to use
 ##
-## markers <- read.marker.data("filename.csv")
-## result <- analyze.data(markers)
-## print.summary(result)
+## markers <- read.marker.data("filename.csv", shuffle=TRUE/FALSE)
+## fit <- analyze.data(markers)
+## print.summary(fit)
+
+rm(list=ls())
 
 generate.data <- function(theta=0.2,
                           n.pops,
@@ -39,11 +41,24 @@ count.genos <- function(x) {
   genos
 }
 
-read.marker.data <- function(filename) {
+## read marker data from CSV file
+## - filename: the name of the CSV file
+## - shuffle:  randomly shuffle individuals and population assignment
+##             if TRUE
+##
+read.marker.data <- function(filename, shuffle=FALSE) {
   markers <- read.csv(filename, header=TRUE, na.strings=".")
 
   markers$pop <- as.factor(strip(as.character(markers$indiv)))
   markers <- subset(markers, pop!="EMPTY")
+  if (shuffle) {
+    tmp <- markers$pop
+    new.pop <- sample(seq(1:length(markers$pop)), replace=TRUE)
+    for (i in 1:length(markers$pop)) {
+      tmp[i] <- markers$pop[new.pop[i]]
+    }
+    markers$pop <- tmp
+  }
   n.pops <-length(unique(markers$pop))
   n.loci <- ncol(markers)-2
 
@@ -130,7 +145,8 @@ get.beta.pars <- function(n, N, tightness) {
        max.fij=max(fst.ij, na.rm=TRUE),
        min.fij=min(fst.ij, na.rm=TRUE),
        max.fst=max(fst, na.rm=TRUE),
-       min.fst=min(fst, na.rm=TRUE))
+       min.fst=min(fst, na.rm=TRUE),
+       fst=fst)
 }
 
 ## markers - a list containing n, N, n.pops, and n.loc
@@ -151,7 +167,8 @@ analyze.data <- function(markers,
                          n.chains=5,
                          nu=1,
                          omega=9,
-                         digits=3)
+                         digits=3,
+                         shuffle=FALSE)
 {
   require(R2jags)
 
@@ -206,7 +223,7 @@ analyze.data <- function(markers,
   fit <- jags(data=jags.data,
               inits=NULL,
               parameters.to.save=jags.params,
-              model.file="f-statistics.txt",
+              model.file="f-statistics-with-fij.txt",
               n.chains=n.chains,
               n.iter=n.iter,
               n.burnin=n.burnin,

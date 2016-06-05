@@ -32,3 +32,21 @@ get.data <- function(theta, npops, nloci, nsample) {
   }
   counts
 }
+
+generate.data <- function(theta=0.2,
+                          n.pops=20,
+                          n.loci=100,
+                          n.indiv=30)
+{
+  n <- get.data(theta, n.pops, n.loci, n.indiv)
+  N <- matrix(nrow=n.pops, ncol=n.loci)
+  for (i in 1:n.pops) {
+    for (j in 1:n.loci) {
+      N[i,j] <- sum(n[i,j,])
+    }
+  }
+  list(n.pops=n.pops,
+       n.loci=n.loci,
+       n=n,
+       N=N)
+}

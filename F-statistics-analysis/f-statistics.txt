@@ -3,9 +3,9 @@ model {
    ##
    for (i in 1:n.pops) {
      for (j in 1:n.loci) {
-       x[i,j,1] <- p[i,j]*p[i,j] + f[i,j]*p[i,j]*(1-p[i,j])
-       x[i,j,2] <- 2*(1-f[i,j])*p[i,j]*(1 - p[i,j])
-       x[i,j,3] <- (1-p[i,j])*(1-p[i,j]) + f[i,j]*p[i,j]*(1-p[i,j])
+       x[i,j,1] <- p[i,j]*p[i,j] + f*p[i,j]*(1-p[i,j])
+       x[i,j,2] <- 2*(1-f)*p[i,j]*(1 - p[i,j])
+       x[i,j,3] <- (1-p[i,j])*(1-p[i,j]) + f*p[i,j]*(1-p[i,j])
      }
    }
 
@@ -22,11 +22,9 @@ model {
    for (i in 1:n.pops) {
      for (j in 1:n.loci) {
        p[i,j] ~ dbeta(alpha[i,j], beta[i,j])
-       f[i,j] <- w[i,j]*(1 - f.min[i,j]) + f.min[i,j]
-       f.min[i,j] <- max(-p[i,j]/(1-p[i,j]), -(1-p[i,j])/p[i,j])
-       w[i,j] ~ dunif(0, 1)
      }
    }
+   f ~ dunif(0, 1)
    ## population effect on theta[i,j]
    ##
    for (i in 1:n.pops) {

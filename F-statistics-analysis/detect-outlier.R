@@ -27,7 +27,7 @@ markers <- subset(markers, pop!="EMPTY")
 pops <- unique(markers$pop)
 n.pops <-length(unique(markers$pop))
 
-sink("outliers-JAGS.txt")
+sink("outliers-JAGS-shuffled.txt")
 lo <- quantile(pi.l, probs=0.025)
 hi <- quantile(pi.l, probs=0.975)
 cat("Locus outliers:  ", mean(pi.l), " (", lo, ",", hi, ")...\n", sep="")
@@ -40,7 +40,7 @@ for (i in 1:ncol(theta.locus)) {
   beta.pars <- get.beta.pars(theta.locus[,i])
   kld <- get.kld(alpha.0, beta.0, beta.pars$alpha, beta.pars$beta)
   if (kld > threshold) {
-    cat("  ", colnames(markers)[i], "[", i, "]: ", mean(theta.locus[,i]), "  ", kld, "\n",
+    cat("  ", colnames(markers)[i+1], "[", i, "]: ", mean(theta.locus[,i]), "  ", kld, "\n",
         sep="")
   }
 }

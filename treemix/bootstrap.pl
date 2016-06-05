@@ -2,7 +2,7 @@
 
 use strict;
 
-my $base_command = "treemix -i loci_20.treemix.gz -bootstrap -o ";
+my $base_command = "treemix -i no-outliers.treemix.gz -bootstrap -o ";
 
 my $n_boot = shift
   or die "Specify number of bootstrap replicated on command line: $!";

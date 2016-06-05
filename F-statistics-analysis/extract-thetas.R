@@ -6,6 +6,6 @@ theta.l     <- fit$BUGSoutput$sims.list$theta.l
 pi.l        <- fit$BUGSoutput$sims.list$pi.l
 
 save(theta.pop, theta.p, pi.p, theta.locus, theta.l, pi.l,
-     file="thetas-JAGS.Rsave")
+     file="thetas-JAGS-shuffled.Rsave")
 
 
